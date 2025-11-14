@@ -13,14 +13,26 @@ Hardware
 
 i use 
 Freenove Breakout Board  Terminal Block Shield HAT, 5V 3.3V Power Outputs, GPIO Status LED
-
 Freenove ESP32-WROOM Wireless Board, Dual-core 32-bit 240 MHz Microcontroller
+
+no soldered need it +
 
 ![111](https://github.com/user-attachments/assets/820171cc-6371-43d1-88a2-e48e7133f288)
 ![222](https://github.com/user-attachments/assets/5bc32afd-b9b1-4ecb-9fa7-40da1c69b0dc)
 
 freenove.com/ 
-more expensive 
+
+
+INMP441 Omnidirectional Microphone Module MEMS High Precision Low Power I2S Interface Support ESP32
+Module (allready soldered)
+
+![123](https://github.com/user-attachments/assets/a7c07e1a-4085-45a3-8443-3ef769b0d908)
+
+
+20Pin Jumper Wire Dupont Line 20cm Male To Male+Female 
+Wired
+
+![123](https://github.com/user-attachments/assets/63d4e053-e659-4f2b-8334-d9defaf3f89a)
 
 
 
