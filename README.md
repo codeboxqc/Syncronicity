@@ -11,6 +11,17 @@ FeatureDescription17 Unique ScenesPlasma, Fire, Anime Zoom, Aurora, Forests, Oce
 
 Hardware
 
+i use 
+Freenove Breakout Board  Terminal Block Shield HAT, 5V 3.3V Power Outputs, GPIO Status LED
+
+Freenove ESP32-WROOM Wireless Board, Dual-core 32-bit 240 MHz Microcontroller
+
+![111](https://github.com/user-attachments/assets/820171cc-6371-43d1-88a2-e48e7133f288)
+![222](https://github.com/user-attachments/assets/5bc32afd-b9b1-4ecb-9fa7-40da1c69b0dc)
+
+freenove.com/ 
+more expensive 
+
 
 
 
@@ -64,6 +75,10 @@ MIT License - Feel free to fork, modify, and share!
 
 
 
+
+
+
+https://github.com/user-attachments/assets/82b5dbd9-d31b-4034-b058-4c52d2ee04c6
 
 
 
