@@ -99,7 +99,37 @@ https://github.com/user-attachments/assets/82b5dbd9-d31b-4034-b058-4c52d2ee04c6
 
 
 
+my pio wire config
 
+#define  WIDTH  64
+#define  HEIGHT 64
+
+
+#define PANEL_CHAIN 1  one panel
+
+ 
+micro 
+#define I2S_WS    16 
+#define I2S_SD    9
+#define I2S_SCK   14
+#define I2S_PORT I2S_NUM_0
+
+ 
+hub 75 cable  wireds
+#define gpior1   17
+#define gpiob1   8
+#define gpior2   3
+#define gpiob2   10
+#define gpioa  15
+#define gpioc   7
+#define gpioclk   5
+#define gpiooe   12
+#define gpiog1   18  
+#define gpiog2   2
+ #define gpioe   13
+#define gpiob   11
+#define gpiod   4
+#define gpiolat   6
 
 
 
