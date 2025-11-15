@@ -7,7 +7,9 @@ Stunning Visual Modes | Audio-Reactive Waveforms | Smooth Cross-Fade Transitions
 
 
 
-FeatureDescription17 Unique ScenesPlasma, Fire, Anime Zoom, Aurora, Forests, Oceans, Cities & moreAudio ReactiveINMP441 I2S Mic → FFT → 15+ Waveform VisualizersSmooth Transitions5-second cross-fade between modes (except Fire)Dynamic Palettes30-sec hold + 30-sec smooth color morphingNo Framebuffer FlickerDouble-buffered via ESP32-HUB75-MatrixPanel-I2S-DMAMode 1: Fire3-minute clean-cut showcase with instant palette rotate
+Feature Description  
+Unique ScenesPlasma, Fire, Anime Zoom, Aurora, Forests, Oceans, Cities & moreAudio Reactive
+INMP441 I2S Mic → FFT → 15+ Waveform VisualizersSmooth Transitions5-second cross-fade between modes (except Fire)Dynamic Palettes30-sec hold + 30-sec smooth color morphing No Framebuffer FlickerDouble-buffered via ESP32-HUB75-MatrixPanel-I2S-DMAMode 1: Fire3-minute clean-cut showcase with instant palette rotate
 
 Hardware
 
@@ -15,12 +17,12 @@ i use
 Freenove Breakout Board  Terminal Block Shield HAT, 5V 3.3V Power Outputs, GPIO Status LED
 Freenove ESP32-WROOM Wireless Board, Dual-core 32-bit 240 MHz Microcontroller
 
-no soldered need it +
+no soldered need 
 
 ![111](https://github.com/user-attachments/assets/820171cc-6371-43d1-88a2-e48e7133f288)
 ![222](https://github.com/user-attachments/assets/5bc32afd-b9b1-4ecb-9fa7-40da1c69b0dc)
 
-freenove.com/ 
+freenove.com
 
 
 INMP441 Omnidirectional Microphone Module MEMS High Precision Low Power I2S Interface Support ESP32
@@ -101,5 +103,3 @@ https://github.com/user-attachments/assets/82b5dbd9-d31b-4034-b058-4c52d2ee04c6
 
 
 
-
-ComponentRecommendedMCUESP32 (DevKit, NodeMCU, etc.)Display64x32 or 64x64 HUB75 RGB LED MatrixMicINMP441 I2S Digital MicrophonePower5V 4A+ for matrix
