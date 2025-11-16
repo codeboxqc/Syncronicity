@@ -127,21 +127,13 @@ hub 75 cable  wireds
 #define gpiob2   10
 #define gpioa  15
 #define gpioc   7
-
 #define gpioclk   5
-
 #define gpiooe   12
-
 #define gpiog1   18  
-
 #define gpiog2   2
-
- #define gpioe   13
- 
+#define gpioe   13
 #define gpiob   11
-
 #define gpiod   4
-
 #define gpiolat   6
 
 
