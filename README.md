@@ -78,7 +78,7 @@ lib_deps =
 Credits
 
 ESP32-HUB75-MatrixPanel-I2S-DMA – Display driver
-FFT logic inspired by @marcmerlin, @2dom, @s-marley
+FFT logic 
 Palette system based on FastLED CRGBPalette16
 
 
@@ -111,22 +111,41 @@ my pio wire config
  
 // I2S configuration
 #define I2S_WS   16
+
 #define I2S_SD   9
+
 #define I2S_SCK  14
+
 #define I2S_PORT I2S_NUM_0
+
+
 
 // HUB75 cable wiring
 #define gpior1   17
+
 #define gpiob1   8
+
 #define gpior2   3
+
 #define gpiob2   10
+
 #define gpioa    15
+
 #define gpioc    7
+
 #define gpioclk  5
+
 #define gpiooe   12
+
 #define gpiog1   18
+
 #define gpiog2   2
+
 #define gpioe    13
+
 #define gpiob    11
+
 #define gpiod    4
+
 #define gpiolat  6
+
