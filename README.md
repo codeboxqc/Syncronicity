@@ -130,8 +130,3 @@ my pio wire config
 #define gpiob    11
 #define gpiod    4
 #define gpiolat  6
-
-
-
-
-
