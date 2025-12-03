@@ -37,6 +37,7 @@ Wired
 ![123](https://github.com/user-attachments/assets/63d4e053-e659-4f2b-8334-d9defaf3f89a)
 
 
+![Untitled](https://github.com/user-attachments/assets/974a3752-34d5-48f3-8bb1-434b6bd0465e)
 
 
 Visual Modes
