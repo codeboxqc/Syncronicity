@@ -27,7 +27,7 @@ public:
     // Public API
     // -----------------------------------------------------------------
     static void init(MatrixPanel_I2S_DMA* display = nullptr);
-
+    static void fadeToBlack(uint8_t amount);
     static void setPalette(uint8_t idx, uint8_t r, uint8_t g, uint8_t b);
     static void getPalette(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b);
 
