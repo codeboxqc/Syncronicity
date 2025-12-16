@@ -14,8 +14,8 @@
 #include "3body.h"
 
 #define NUM_BODIES 3
-#define G 12.0f
-#define dt 0.0008f
+#define G  12.0f  //12.0f
+#define dt 0.0008f  //0.0008f 
 #define scale 18.0f
 #define maxTrailLength 130
 #define SIM_RANGE 5.2f
@@ -79,6 +79,7 @@ void hsvToRgb(float h, float s, float v, uint8_t& r, uint8_t& g, uint8_t& b) {
     b = (bf + m) * 255;
 }
 
+///*
 // === CALCULATE AUDIO AMPLITUDE ===
 float getAudioAmplitude() {
     float sum = 0;
@@ -91,6 +92,254 @@ float getAudioAmplitude() {
     float amplitude = avg / 32768.0f;
     return constrain(amplitude, 0.0f, 1.0f);
 }
+   // */
+
+/*
+// === GET HIGH FREQUENCY BEAT AMPLITUDE ===
+float getHighBeatAmplitude() {
+    // Focus on high frequencies for sharp, reactive movements
+    float sum = 0;
+    int highFreqStart = SAMPLES / 4;  // Skip low/mid frequencies
+    int count = 0;
+    
+    // Sample high frequency range
+    for (int i = highFreqStart; i < SAMPLES / 2; i += 2) {
+        sum += fabs(vReal[i]);  // Use FFT data for frequency-specific response
+        count++;
+    }
+    
+    if (count == 0) return 0.0f;
+    
+    float avg = sum / count;
+    // Normalize and amplify
+    float amplitude = avg / 16384.0f;  // Lower divisor = more sensitive
+    
+    // Apply exponential curve for sharper response to peaks
+    amplitude = powf(amplitude, 0.7f);  // Makes it more reactive
+    
+    return constrain(amplitude * 1.5f, 0.0f, 1.0f);  // Boost and cap
+}
+
+// === SMOOTH HIGH BEAT FOR NATURAL MOTION ===
+float smoothedHighBeat = 0.0f;
+
+float getAudioAmplitude() {
+    float rawBeat = getHighBeatAmplitude();
+    
+    // Fast attack, slow decay for punchy response
+    if (rawBeat > smoothedHighBeat) {
+        smoothedHighBeat += (rawBeat - smoothedHighBeat) * 0.35f;  // Fast attack
+    } else {
+        smoothedHighBeat *= 0.88f;  // Slow decay
+    }
+    
+    return smoothedHighBeat;
+}
+
+*/
+
+
+
+
+
+////////////////////////////////////////*
+// ===================================================================
+// PIXEL INTERACTION SYSTEM - Pixels see and react to neighbors
+// ===================================================================
+
+enum InteractionMode {
+    INTERACT_NONE = 0,       // No interaction (default)
+    INTERACT_CONTRAST,       // Draw opposite colors for contrast
+    INTERACT_BLEND,          // Blend with surroundings
+    INTERACT_RIPPLE,         // Create ripple effect from neighbors
+    INTERACT_RADIAL_GLOW,    // Radial color spread
+    INTERACT_ENERGY_FLOW,    // Energy flows through neighboring pixels
+    INTERACT_KALEIDOSCOPE    // Mirror and multiply patterns
+};
+
+InteractionMode currentInteraction = INTERACT_RADIAL_GLOW;
+
+
+struct NeighborCache {
+    uint8_t avgR, avgG, avgB;
+    float energy;
+    uint32_t lastUpdate;
+};
+
+// Cache grid (1/4 resolution for speed)
+#define CACHE_W (WIDTH / 4)
+#define CACHE_H (HEIGHT / 4)
+NeighborCache pixelCache[CACHE_W * CACHE_H];
+uint32_t cacheFrameCount = 0;
+
+// Fast cache lookup
+inline NeighborCache* getCachedNeighborhood(int x, int y) {
+    int cx = (x / 4) % CACHE_W;
+    int cy = (y / 4) % CACHE_H;
+    return &pixelCache[cy * CACHE_W + cx];
+}
+
+// Update cache (call once per frame before drawing)
+void updatePixelCache() {
+    cacheFrameCount++;
+    
+    // Only update cache every 2nd frame for speed
+    if (cacheFrameCount % 2 != 0) return;
+    
+    for (int cy = 0; cy < CACHE_H; cy++) {
+        for (int cx = 0; cx < CACHE_W; cx++) {
+            int x = cx * 4 + 2;  // Sample center of 4x4 block
+            int y = cy * 4 + 2;
+            
+            if (x >= WIDTH || y >= HEIGHT) continue;
+            
+            // Fast 3x3 neighborhood sample
+            uint32_t sumR = 0, sumG = 0, sumB = 0;
+            int count = 0;
+            
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    int nx = x + dx;
+                    int ny = y + dy;
+                    
+                    if (nx < 0 || nx >= WIDTH || ny < 0 || ny >= HEIGHT) continue;
+                    
+                    uint16_t color = GFX::getPixel(nx, ny);
+                    sumR += ((color >> 11) & 0x1F) << 3;
+                    sumG += ((color >> 5) & 0x3F) << 2;
+                    sumB += (color & 0x1F) << 3;
+                    count++;
+                }
+            }
+            
+            NeighborCache* cache = &pixelCache[cy * CACHE_W + cx];
+            if (count > 0) {
+                cache->avgR = sumR / count;
+                cache->avgG = sumG / count;
+                cache->avgB = sumB / count;
+                cache->energy = (cache->avgR + cache->avgG + cache->avgB) / 3.0f / 255.0f;
+            } else {
+                cache->avgR = cache->avgG = cache->avgB = 0;
+                cache->energy = 0;
+            }
+            cache->lastUpdate = cacheFrameCount;
+        }
+    }
+}
+
+// ===================================================================
+// FAST INTERACTION MODES (using cache)
+// ===================================================================
+
+// FAST: Radial glow from cache
+void applyRadialGlowCached(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b) {
+    NeighborCache* cache = getCachedNeighborhood(x, y);
+    
+    if (cache->energy > 0.15f) {
+        // Blend with cached neighborhood
+        float strength = cache->energy * 0.6f;
+        r = min(255, (int)(r + cache->avgR * strength));
+        g = min(255, (int)(g + cache->avgG * strength));
+        b = min(255, (int)(b + cache->avgB * strength));
+    }
+}
+
+// FAST: Energy flow from cache
+void applyEnergyFlowCached(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, 
+                           float audioAmp) {
+    // Get cached neighborhood
+    NeighborCache* cache = getCachedNeighborhood(x, y);
+    
+    if (cache->energy > 0.2f) {
+        // Flow energy from cache to current pixel
+        float flowStrength = 0.5f + audioAmp * 0.5f;
+        r = min(255, (int)(cache->avgR * flowStrength + r * (1.0f - flowStrength)));
+        g = min(255, (int)(cache->avgG * flowStrength + g * (1.0f - flowStrength)));
+        b = min(255, (int)(cache->avgB * flowStrength + b * (1.0f - flowStrength)));
+        
+        // Audio boost
+        float boost = 1.0f + audioAmp * 0.4f;
+        r = min(255, (int)(r * boost));
+        g = min(255, (int)(g * boost));
+        b = min(255, (int)(b * boost));
+    }
+}
+
+// FAST: Contrast from cache
+void applyContrastCached(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b) {
+    NeighborCache* cache = getCachedNeighborhood(x, y);
+    
+    if (cache->energy > 0.1f) {
+        // Invert cached colors for contrast
+        r = 255 - cache->avgR;
+        g = 255 - cache->avgG;
+        b = 255 - cache->avgB;
+        
+        // Boost
+        float boost = 1.4f;
+        r = min(255, (int)(r * boost));
+        g = min(255, (int)(g * boost));
+        b = min(255, (int)(b * boost));
+    }
+}
+
+// ===================================================================
+// FAST PIXEL PROCESSOR (uses cache)
+// ===================================================================
+inline void processPixelInteractionFast(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b,
+                                        float audioAmp) {
+    switch (currentInteraction) {
+        case INTERACT_RADIAL_GLOW:
+            applyRadialGlowCached(x, y, r, g, b);
+            break;
+            
+        case INTERACT_ENERGY_FLOW:
+            applyEnergyFlowCached(x, y, r, g, b, audioAmp);
+            break;
+            
+        case INTERACT_CONTRAST:
+            applyContrastCached(x, y, r, g, b);
+            break;
+            
+        case INTERACT_BLEND: {
+            // Simple 4-neighbor blend (no cache needed)
+            uint16_t c1 = (x > 0) ? GFX::getPixel(x-1, y) : 0;
+            uint16_t c2 = (x < WIDTH-1) ? GFX::getPixel(x+1, y) : 0;
+            uint8_t r1 = ((c1 >> 11) & 0x1F) << 3;
+            uint8_t r2 = ((c2 >> 11) & 0x1F) << 3;
+            r = (r + r1 + r2) / 3;
+            
+            uint8_t g1 = ((c1 >> 5) & 0x3F) << 2;
+            uint8_t g2 = ((c2 >> 5) & 0x3F) << 2;
+            g = (g + g1 + g2) / 3;
+            
+            uint8_t b1 = (c1 & 0x1F) << 3;
+            uint8_t b2 = (c2 & 0x1F) << 3;
+            b = (b + b1 + b2) / 3;
+            break;
+        }
+            
+        case INTERACT_NONE:
+        default:
+            break;
+    }
+}
+
+/*****************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // === DEFINE 30 SHAPES ===
 void defineShapes() {
@@ -235,6 +484,8 @@ void updateBodies() {
 }
 
 // === DRAW WITH AUDIO REACTION - WAVE DISTORTION ===
+/*
+
 void drawOrbitalTrails() {
     float t = millis() * 0.002f;
     
@@ -298,13 +549,13 @@ void drawOrbitalTrails() {
             uint8_t r, g, b;
             hsvToRgb(hue, 1.0f, glow, r, g, b);
 
-            /*
+            
             // Enhanced brightness on beat
-            if (audioAmp > 0.5f) {
-                r = min(255, (int)(r * (1.0f + audioAmp * 0.3f)));
-                g = min(255, (int)(g * (1.0f + audioAmp * 0.3f)));
-                b = min(255, (int)(b * (1.0f + audioAmp * 0.3f)));
-            }*/
+            //if (audioAmp > 0.5f) {
+               // r = min(255, (int)(r * (1.0f + audioAmp * 0.3f)));
+              //  g = min(255, (int)(g * (1.0f + audioAmp * 0.3f)));
+             //   b = min(255, (int)(b * (1.0f + audioAmp * 0.3f)));
+            //}
 
              // Get existing pixel and create contrast
             uint16_t existingColor = GFX::getPixel(x, y);
@@ -357,11 +608,113 @@ void drawOrbitalTrails() {
         }
     }
 }
+*/
+
+
+void drawOrbitalTrails() {
+    float t = millis() * 0.002f;
+    float audioAmp = getAudioAmplitude();
+    
+    // Update cache once per frame
+    updatePixelCache();
+
+    for (int i = 0; i < NUM_BODIES; i++) {
+        // Update trail
+        if (trailSizes[i] < maxTrailLength) {
+            trails[i][trailSizes[i]++] = bodies[i].pos;
+        } else {
+            memmove(trails[i], trails[i] + 1, (maxTrailLength - 1) * sizeof(Vec2));
+            trails[i][maxTrailLength - 1] = bodies[i].pos;
+        }
+
+        // Draw trail
+        for (int j = 0; j < trailSizes[i]; j++) {
+            // Position calculation (keep your original)
+            float baseX = trails[i][j].x * scale + WIDTH / 2;
+            float baseY = trails[i][j].y * scale + HEIGHT / 2;
+            
+            float wavePhase = t * 3.0f + j * 0.3f;
+            float waveAmplitude = audioAmp * 2.5f;
+            float waveOffset = sin(wavePhase) * waveAmplitude;
+            
+            float dirX = 0, dirY = 0;
+            if (j > 0 && j < trailSizes[i] - 1) {
+                dirX = trails[i][j + 1].x - trails[i][j - 1].x;
+                dirY = trails[i][j + 1].y - trails[i][j - 1].y;
+                float len = sqrt(dirX * dirX + dirY * dirY);
+                if (len > 0.01f) {
+                    dirX /= len;
+                    dirY /= len;
+                }
+            }
+            
+            float perpX = -dirY;
+            float perpY = dirX;
+            
+            int x = (int)(baseX + perpX * waveOffset);
+            int y = (int)(baseY + perpY * waveOffset);
+            
+            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) continue;
+
+            // Base color (keep your original)
+            float normX = baseX / WIDTH;
+            int idx = (int)(normX * (SAMPLES - 1));
+            idx = constrain(idx, 0, SAMPLES - 1);
+            float amp = fabs(vRealOriginal[idx]) / 32768.0f;
+
+            float glow = 0.7f + 0.3f * amp;
+            float hue = fmod(t * 50 + i * 120 + j * 0.1f, 360);
+            uint8_t r, g, b;
+            hsvToRgb(hue, 1.0f, glow, r, g, b);
+
+            // FAST CACHED INTERACTION
+            processPixelInteractionFast(x, y, r, g, b, audioAmp);
+
+            GFX::setPixel(x, y, rgbToColor(r, g, b));
+        }
+
+        // Body (keep original)
+        float baseBodyX = bodies[i].pos.x * scale + WIDTH / 2;
+        float baseBodyY = bodies[i].pos.y * scale + HEIGHT / 2;
+        
+        float bodyWavePhase = t * 3.0f + trailSizes[i] * 0.3f;
+        float bodyWaveAmp = audioAmp * 2.5f;
+        float bodyWaveOffset = sin(bodyWavePhase) * bodyWaveAmp;
+        
+        float velLen = bodies[i].vel.mag();
+        float perpBodyX = 0, perpBodyY = 0;
+        if (velLen > 0.01f) {
+            perpBodyX = -bodies[i].vel.y / velLen;
+            perpBodyY = bodies[i].vel.x / velLen;
+        }
+        
+        int bx = (int)(baseBodyX + perpBodyX * bodyWaveOffset);
+        int by = (int)(baseBodyY + perpBodyY * bodyWaveOffset);
+        
+        if (bx >= 0 && bx < WIDTH && by >= 0 && by < HEIGHT) {
+            int idx = (int)(baseBodyX * (SAMPLES - 1) / WIDTH);
+            idx = constrain(idx, 0, SAMPLES - 1);
+            float pulse = 200 + 55 * fabs(vRealOriginal[idx]) / 32768.0f;
+            
+            if (audioAmp > 0.6f) {
+                pulse = min(255.0f, pulse * (1.0f + audioAmp * 0.4f));
+            }
+
+            GFX::setPixel(bx, by, rgbToColor((uint8_t)pulse, (uint8_t)pulse, (uint8_t)pulse));
+        }
+    }
+}
 
 // === MAIN FUNCTION ===
 void body3(int trans) {
     currentShape = trans % 30;
     nextShape = (trans + 1) % 30;
+
+    //////////////
+    memset(pixelCache, 0, sizeof(pixelCache));
+    currentInteraction = INTERACT_RADIAL_GLOW;
+    ///////////////////////////
+
 
     updateBodies();  // Physics stays the same
     drawOrbitalTrails();  // Visual reacts to audio
@@ -371,7 +724,7 @@ void body3(int trans) {
         transition = 0.0f;
         currentShape = nextShape;
         nextShape = (nextShape + 1) % 30;
-        for (int i = 0; i < NUM_BODIES; i++) trailSizes[i] = 0;
+        //for (int i = 0; i < NUM_BODIES; i++) trailSizes[i] = 0;
     }
 }
 

@@ -27,8 +27,7 @@ void GFX::init(MatrixPanel_I2S_DMA* display) {
 
    
 }
-
-
+ 
  
 
 // -----------------------------------------------------------------
@@ -36,9 +35,14 @@ void GFX::init(MatrixPanel_I2S_DMA* display) {
 // -----------------------------------------------------------------
 void GFX::setPalette(uint8_t idx, uint8_t r, uint8_t g, uint8_t b) {
     if (idx < GFX_PALETTE_SIZE) {
-        palette[idx].r = r;
-        palette[idx].g = g;
-        palette[idx].b = b;
+
+      
+ 
+         palette[idx].r = r;
+       palette[idx].g = g;
+       palette[idx].b = b;
+        
+       
     }
 }
 void GFX::getPalette(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b) {
@@ -49,7 +53,17 @@ void GFX::getPalette(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b) {
     } else { *r = *g = *b = 0; }
 }
 
-
+void GFX::fadeToBlack(uint8_t amount) {
+    uint8_t* buf = backbuf;
+    for (size_t i = 0; i < GFX_WIDTH * GFX_HEIGHT; i++) {
+        uint8_t idx = buf[i];
+        if (idx > amount) {
+            buf[i] = idx - amount;
+        } else {
+            buf[i] = 0;
+        }
+    }
+}
 // -----------------------------------------------------------------
 // 4. Primitive implementations (inline in header already, keep stubs)
 // -----------------------------------------------------------------
@@ -299,5 +313,4 @@ void IRAM_ATTR GFX::fliper() {
      dma_display->flipDMABuffer();   // <<< THIS LINE WAS MISSING
 }
 
- 
 #endif

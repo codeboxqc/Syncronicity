@@ -15,13 +15,14 @@ Plasma plasma  ;
 AnimePlasma plasma2;
 Flame flame;
 
-
+#define MORE 4
  
  // -----------------------------------------------------------------
      const uint8_t TOTAL_MODES = 17;  
-     const uint16_t MODE_DURATIONS  =  60 ;// 60 ;
+     const uint16_t MODE_DURATIONS  =  60 * MORE;// 60 ;
      const uint16_t BLEND_FRAMES = 15;           // 150 frames ≈ 5 s
-      uint8_t  visualizerMode   = 0;          // current mode
+     // uint8_t  visualizerMode   = 0;          // current mode
+      uint8_t visualizerMode=random(0, TOTAL_MODES);
       time_t   lastChange       = 0;          // when we entered the mode
       uint16_t blendFrame       = 0;          // 0 … BLEND_FRAMES-1
       uint8_t  oldBackbuf[GFX_WIDTH * GFX_HEIGHT]; // previous frame
@@ -38,15 +39,15 @@ Flame flame;
      unsigned long lastwaveTime = 0;   // initialize once
      int Bw = 0;                       // current mode
      const int BAR =13;
-     unsigned long TIMEbarwave = 30000; // 30 seconds
+     unsigned long TIMEbarwave = 30000 ; // 30 seconds
 
 
      // ---- Wave-only  -------------------------------------------------
 bool     waveOnlyMode   = false;          // are we in "wave-only" now?
 unsigned long waveOnlyStart = 0;          // when we entered wave-only
-const unsigned long WAVE_ONLY_DURATION = 30000UL;   // 30 s
+const unsigned long WAVE_ONLY_DURATION = 30000UL ; //* (MORE/2);   // 30 s
 unsigned long nextWaveOnlyTrigger = 0;    // when the next random pause will fire
-const unsigned long WAVE_ONLY_MIN_GAP = 50000UL;  // chanfe anime bar
+const unsigned long WAVE_ONLY_MIN_GAP = 50000UL;  // change anime bar
 const unsigned long WAVE_ONLY_MAX_GAP = 100000UL;  // 1 min
 bool     waveOnlyJustStarted = false;
 
@@ -68,7 +69,9 @@ void setup() {
     // Initialize microphone
     i2sInit();
    
- 
+
+    
+    
 initmath();
 initPlasma(&plasma);
 initAnimePlasma(&plasma2);
@@ -82,8 +85,10 @@ for (int i = 0; i < GFX_PALETTE_SIZE; i++) {
     setPalEntry(0, 0, 0, 0);
  /*********Graphics end**************** */
 
-
-//////////////////// logo
+   
+ logo();
+ delay(6000);
+ 
  
  lastChange = millis();
 pallastChange = millis();
@@ -179,6 +184,7 @@ void loop() {
 
    if (waveOnlyMode && (now - waveOnlyStart >= WAVE_ONLY_DURATION)) {
         waveOnlyMode = false;
+        inBlend=true;
         nextWaveOnlyTrigger = now + random(WAVE_ONLY_MIN_GAP, WAVE_ONLY_MAX_GAP);
     }
 
@@ -217,7 +223,15 @@ void loop() {
    if (waveOnlyMode) {
   
         if (waveOnlyJustStarted) {
-            GFX::clear(0);                                      // current back buffer
+            
+               
+           for (int fade = 0; fade < 10; fade++) {  // 12 steps to fade out
+            GFX::fadeToBlack(10);
+            GFX::fliper();
+            delay(30);
+           }
+           GFX::clear(0);
+           // current back buffer
             memset(oldBackbuf, 0, GFX_WIDTH * GFX_HEIGHT);      // previous-frame buffer
             waveOnlyJustStarted = false;   // run only once
         } else {
@@ -348,7 +362,9 @@ void changepal()
     unsigned long now2 = millis();
     if (!transitioning && (now2 - pallastChange >= PALETTE_HOLD_TIME + TRANSITION_DURATION)) {
         // pick next palette (wrap around)
-        currentPal = (currentPal + 1) % NUM_PALETTES;
+       // currentPal = (currentPal + 1) % NUM_PALETTES;
+
+        currentPal = random(0, NUM_PALETTES+1);
 
         // fill *target* buffer with the new colours
         generatePalette(currentPal, targetRGB);

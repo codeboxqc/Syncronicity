@@ -29,10 +29,24 @@
 uint8_t normalizeBeat(float beatStrength) {
     float normalizedBeat = fmaxf(0.0f, fminf(1.0f, beatStrength));
     return (uint8_t)(normalizedBeat * 64); // 0-64 range
+
+
+  
+}
+
+
+uint8_t valueToPaletteIndex(float value, bool fadeFromBlack = true) {
+    if (fadeFromBlack && value < 0.05f) return 0;  // Force black
+    
+    // Map to palette range, avoiding index 0
+    uint8_t idx = 1 + (uint8_t)(value * (GFX_PALETTE_SIZE - 2));
+    return idx;
 }
 
 void initAnimePlasma(AnimePlasma* p) {
+
     memset(p->body, 0, 256*256);
+
     p->p1 = p->p2 = p->p3 = p->p4 = 0;
 
     // ---- same cosine table you had (0-60) ----
@@ -425,6 +439,11 @@ void BioForest (float t) {
             uint8_t pulse = (uint8_t)((fastSin(t * 0.1f) * 0.3f + 0.7f) * 255);
             uint8_t index = 1 + (uint8_t)(color_val * 33) % (GFX_PALETTE_SIZE - 2);
             
+            //////////////aaaa
+           //  density = (tree + ground + particles + 2.0f) / 4.0f;
+            //density = fmax(0.0f, fmin(1.0f, density));
+           //  index = valueToPaletteIndex(density, true);
+            //////////////
             GFX::setPixel(x, y, index);
         }
     }
@@ -486,6 +505,13 @@ void OrganicLandscape(float t) {
                 // Peaks - hot colors
                 index = 120 + (uint8_t)((height - 0.2f) * 60) % 100;
             }
+
+
+            ///////////////////aaaa
+            //float normalizedHeight = (height + 1.5f) / 3.0f;  // Adjust range
+           // normalizedHeight = fmax(0.0f, fmin(1.0f, normalizedHeight));
+            // index = valueToPaletteIndex(normalizedHeight, true);
+            ////////////////////////////////////////
             
             GFX::setPixel(x, y, index);
         }
@@ -539,6 +565,11 @@ void GooGlow(float t) {
             uint8_t B = (uint8_t)((fastSin(px_color + 2.0f) * 0.2f + 0.5f) * 255.0f);
 
             uint8_t index = rgbToPaletteIndex(R, G, B);
+
+             ////////////////////////aaaa
+           // float colorValue = (fastSin(px * 1.1f + t * 1.1f) * 0.5f + 0.5f);
+            // index = valueToPaletteIndex(colorValue, true);
+            //////////////////////////
             GFX::setPixel(x, y, index);
         }
     }
@@ -676,6 +707,11 @@ void VolcanicLandscape(float t) {
                 index = 100 + (uint8_t)((volcanic - 0.7f) * 120) % (GFX_PALETTE_SIZE - 101);
             }
             
+            ///////////////aaaa
+            // volcanic = (rock + lava + vents + eruption + 3.0f) / 6.0f;
+           // volcanic = fmax(0.0f, fmin(1.0f, volcanic));
+            // index = valueToPaletteIndex(volcanic, true);
+            ////////////////
             GFX::setPixel(x, y, index);
         }
     }
